@@ -5,13 +5,13 @@
 /login?username=<something>&password=<something>
 => server sends API key for the particular username if the password is correct
 
-/catalog?page=<number>
+/catalogue?page=<number>
 => list all books in library, in alphabetical order, with pagination
 
 /search?author=<something>&title=<something>&isbn=<something>
 => return list of books satisfying criteria (every parameter optional?)
 
-/list?user=<username>
+/list?username=<username>
 => list all books borrowed by a specific user, with due date
 
 /available?isbn=<something>

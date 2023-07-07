@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS books (
   title VARCHAR(255),
   author VARCHAR(255),
   ISBN VARCHAR(255),
-  isChecked_out boolean
+  copies INT,
+  checked_out INT,
 );
 
 CREATE TABLE IF NOT EXISTS users (
