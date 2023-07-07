@@ -11,6 +11,8 @@ let queries = {
     new QueryFile("../sql/list_books_for_user.sql", { params: username }),
   catalogue: (page_offset: number) =>
     new QueryFile("../sql/list_all_books.sql", { params: page_offset }),
+  search: (title: string, author: string, ISBN: string) =>
+    new QueryFile("../sql/search_book.sql", { params: [title, author, ISBN] }),
 };
 
 const app = express();
@@ -35,6 +37,14 @@ router.get("/catalogue?", async (req: any, res: any) => {
   let page = Number(req.query.page);
   if (isNaN(page)) throw new Error("No valid page number specified");
   let result = await db.manyOrNone(queries.catalogue((page - 1) * 25));
+  res.send(result);
+});
+
+router.get("/search?", async (req: any, res: any) => {
+  let title = req.query.title;
+  let author = req.query.author;
+  let ISBN = req.query.ISBN;
+  let result = await db.manyOrNone(queries.search(title, author, ISBN));
   res.send(result);
 });
 
