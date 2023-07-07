@@ -16,7 +16,7 @@ CREATE TABLE checked_out (
   id INT PRIMARY KEY SERIAL,
   checkout_date DATE,
   due_date DATE,
-  FOREIGN KEY (book_id) REFERENCES library(id),
+  FOREIGN KEY (book_id) REFERENCES books(id),
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
