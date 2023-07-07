@@ -1,14 +1,16 @@
 import express from "express";
-import pgp from "pg-promise";
+import pgp, { QueryFile } from "pg-promise";
 import "dotenv/config";
 
 const db = pgp()(
   `postgres://bookish:${process.env.bookish_password}@localhost:5432/bookish`
 );
 
-let query = db
-  .manyOrNone("SELECT * FROM pg_catalog.pg_tables;")
-  .then((data) => console.log(data.map((table) => table.tablename)));
+let query = new QueryFile("../list_books_for_user.sql", {
+  params: "test_user",
+});
+
+db.manyOrNone(query).then((data) => console.log(data));
 
 const app = express();
 const port = 8000;

@@ -12,6 +12,8 @@
 -- user_id (key), username (username), password (password) firstname (string), lastname (string), email (email), address (postcode)
 
 
+-- TABLE INITIALIZATION
+
 
 CREATE TABLE IF NOT EXISTS books (
   book_id SERIAL PRIMARY KEY,
@@ -36,6 +38,3 @@ CREATE TABLE IF NOT EXISTS checked_out (
   FOREIGN KEY (book_id) REFERENCES books(book_id),
   FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
-
--- selects all tables in DB for output
-SELECT * FROM pg_catalog.pg_tables;
