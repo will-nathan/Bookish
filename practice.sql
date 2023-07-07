@@ -20,7 +20,7 @@ CREATE TABLE checked_out (
   FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
-CREATE TABLE library (
+CREATE TABLE books (
   book_id INT PRIMARY KEY,
   title VARCHAR(255),
   author VARCHAR(255),
@@ -31,9 +31,5 @@ CREATE TABLE library (
 CREATE TABLE users (
   user_id INT PRIMARY KEY,
   username VARCHAR(255),
-  password password,
-  firstname VARCHAR(255),
-  lastname VARCHAR(255),
-  email VARCHAR(255),
-  postcode VARCHAR(255)
+  password VARCHAR(255)
 );
