@@ -13,7 +13,7 @@
 
 
 CREATE TABLE checked_out (
-  id INT PRIMARY KEY,
+  id INT PRIMARY KEY SERIAL,
   checkout_date DATE,
   due_date DATE,
   FOREIGN KEY (book_id) REFERENCES library(id),
@@ -21,7 +21,7 @@ CREATE TABLE checked_out (
 );
 
 CREATE TABLE books (
-  book_id INT PRIMARY KEY,
+  book_id INT PRIMARY KEY SERIAL,
   title VARCHAR(255),
   author VARCHAR(255),
   ISBN VARCHAR(255),
@@ -29,7 +29,7 @@ CREATE TABLE books (
 );
 
 CREATE TABLE users (
-  user_id INT PRIMARY KEY,
+  user_id INT PRIMARY KEY SERIAL,
   username VARCHAR(255),
   password VARCHAR(255)
 );
