@@ -1,5 +1,14 @@
 import express from "express";
+import pgp from "pg-promise";
 import "dotenv/config";
+
+const db = pgp()(
+  `postgres://bookish:${process.env.bookish_password}@localhost:5432/bookish`
+);
+
+let query = db
+  .manyOrNone("SELECT * FROM pg_catalog.pg_tables;")
+  .then((data) => console.log(data.map((table) => table.tablename)));
 
 const app = express();
 const port = 8000;
