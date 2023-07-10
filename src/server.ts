@@ -37,9 +37,12 @@ router.get("/login?", async (req: any, res: any) => {
   let username = String(req.query.username);
   if (!req.query.password) throw new Error("No password specified");
   let password = String(req.query.password);
-  let result = await db.manyOrNone(sql.list, [username, password]);
-
-  //res.send(result);
+  let result = await db.oneOrNone(sql.login, [username, password]);
+  if (!result) {
+    throw new Error("Authentication failed, username or password incorrect");
+  }
+  res.cookie("key", "test", { httpOnly: true });
+  res.send(result);
 });
 
 router.get("/list?", async (req: any, res: any) => {
