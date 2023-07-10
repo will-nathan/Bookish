@@ -6,16 +6,19 @@ const db = pgp()(
   `postgres://bookish:${process.env.bookish_password}@localhost:5432/bookish`
 );
 
-function getPQ(filename : string) {
-  return new pgp.ParameterizedQuery(new QueryFile(filename));
-}
-
-let sql: Record<string, string> = {
+let sql_filenames: Record<string, string> = {
   list: "../sql/list_books_for_user.sql",
   catalogue: "../sql/list_all_books.sql",
   search: "../sql/search_book.sql",
   add_book: "../sql/add_book.sql",
+  count_available: "../sql/count_available.sql",
+  get_unavailable: "../sql/get_unavailable.sql",
 };
+
+let sql: Record<string, pgp.ParameterizedQuery> = {};
+for (let key in sql_filenames) {
+  sql[key] = new pgp.ParameterizedQuery(new QueryFile(sql_filenames[key]));
+}
 
 const app = express();
 const port = 8000;
@@ -31,14 +34,14 @@ router.get("/", async (req: any, res: any) => {
 router.get("/list?", async (req: any, res: any) => {
   if (!req.query.username) throw new Error("No username specified");
   let username = String(req.query.username);
-  let result = await db.manyOrNone(getPQ(sql.list), username);
+  let result = await db.manyOrNone(sql.list, username);
   res.send(result);
 });
 
 router.get("/catalogue?", async (req: any, res: any) => {
   let page = Number(req.query.page);
   if (isNaN(page)) throw new Error("No valid page number specified");
-  let result = await db.manyOrNone(getPQ(sql.catalogue), (page - 1) * 25);
+  let result = await db.manyOrNone(sql.catalogue, (page - 1) * 25);
   res.send(result);
 });
 
@@ -46,7 +49,7 @@ router.get("/search?", async (req: any, res: any) => {
   let title = req.query.title;
   let author = req.query.author;
   let ISBN = req.query.ISBN;
-  let result = await db.manyOrNone(getPQ(sql.search), [title, author, ISBN]);
+  let result = await db.manyOrNone(sql.search, [title, author, ISBN]);
   res.send(result);
 });
 
@@ -56,15 +59,16 @@ router.get("/addbook?", async (req: any, res: any) => {
   let ISBN = req.query.ISBN;
   if (!title || !author || !ISBN)
     throw new Error("Must specify title, author, and ISBN");
-  let result = await db.manyOrNone(getPQ(sql.add_book), [title, author, ISBN]);
+  let result = await db.manyOrNone(sql.add_book, [title, author, ISBN]);
   res.send(result);
 });
 
 router.get("/available?", async (req: any, res: any) => {
   let ISBN = req.query.ISBN;
   if (!ISBN) throw new Error("Must specify ISBN");
-  let count_available = await db.manyOrNone(getPQ(sql.count_available), ISBN);
-  res.send(count_available);
+  let count_available = await db.manyOrNone(sql.count_available, ISBN);
+  let unavailable = await db.manyOrNone(sql.get_unavailable, ISBN);
+  res.send({ count_available, unavailable });
 });
 
 app.use("/", router);
