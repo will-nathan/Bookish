@@ -6,6 +6,8 @@ const db = pgp()(
   `postgres://bookish:${process.env.bookish_password}@localhost:5432/bookish`
 );
 
+(async () => console.log(await db.manyOrNone("SELECT current_role;")))();
+
 let sql_filenames: Record<string, string> = {
   list: "../sql/list_books_for_user.sql",
   catalogue: "../sql/list_all_books.sql",

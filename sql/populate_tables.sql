@@ -1,15 +1,15 @@
 INSERT INTO books (title, author, ISBN)
 VALUES 
-  ('Book 1', 'Author 1', 'ISBN1'),
-  ('Book 2', 'Author 2', 'ISBN2'),
-  ('Book 3', 'Author 3', 'ISBN3'),
-  ('Book 4', 'Author 4', 'ISBN4'),
-  ('Book 5', 'Author 5', 'ISBN5'),
-  ('Book 6', 'Author 6', 'ISBN6'),
-  ('Book 4', 'Author 4', 'ISBN7'),
-  ('Book 8', 'Author 8', 'ISBN8'),
-  ('Book 9', 'Author 9', 'ISBN9'),
-  ('Book 10', 'Author 10', 'ISBN10');
+  ('Book1', 'Author1', 'ISBN1'),
+  ('Book2', 'Author2', 'ISBN2'),
+  ('Book3', 'Author3', 'ISBN3'),
+  ('Book4', 'Author4', 'ISBN4'),
+  ('Book5', 'Author5', 'ISBN5'),
+  ('Book6', 'Author6', 'ISBN6'),
+  ('Book4', 'Author4', 'ISBN7'),
+  ('Book8', 'Author8', 'ISBN8'),
+  ('Book9', 'Author9', 'ISBN9'),
+  ('Book10', 'Author10', 'ISBN10');
 
   INSERT INTO users (username, password)
 VALUES 
