@@ -13,6 +13,7 @@ let sql_filenames: Record<string, string> = {
   add_book: "../sql/add_book.sql",
   count_available: "../sql/count_available.sql",
   get_unavailable: "../sql/get_unavailable.sql",
+  login: "../sql/check_login.sql",
 };
 
 let sql: Record<string, pgp.ParameterizedQuery> = {};
@@ -29,6 +30,16 @@ const router = express.Router();
 router.get("/", async (req: any, res: any) => {
   // list commands available (add user, login, checkout, etc)
   res.send("Home directory");
+});
+
+router.get("/login?", async (req: any, res: any) => {
+  if (!req.query.username) throw new Error("No username specified");
+  let username = String(req.query.username);
+  if (!req.query.password) throw new Error("No password specified");
+  let password = String(req.query.password);
+  let result = await db.manyOrNone(sql.list, [username, password]);
+
+  //res.send(result);
 });
 
 router.get("/list?", async (req: any, res: any) => {
