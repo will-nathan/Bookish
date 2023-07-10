@@ -1,2 +1,2 @@
 insert into books
-values(DEFAULT, $1::text, $2::text, $3::text)
+values(DEFAULT, ${title}::text, ${author}::text, ${ISBN}::text)
