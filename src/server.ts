@@ -3,7 +3,7 @@ import pgp, { QueryFile } from "pg-promise";
 import "dotenv/config";
 import jwt from "jsonwebtoken";
 import passport from "passport";
-import { Strategy, ExtractJwt } from "passport-jwt";
+import { Strategy as JwtStrategy, StrategyOptions } from "passport-jwt";
 
 function cookieExtractor(req: any) {
   let token = null;
@@ -18,26 +18,28 @@ async function authenticate(username: string, password: string) {
   return result;
 }
 
-let opts = {
-  jwtFromRequest: cookieExtractor,
-  secretOrKey: process.env.jwt_signing_key,
-};
-
 passport.use(
-  new Strategy(opts, async function (
-    jwt_payload: { username: string; password: string },
-    done: any
-  ) {
-    console.log("strategy run");
-    let result = await authenticate(jwt_payload.username, jwt_payload.password);
-    if (!result) {
-      console.log("result invalid");
-      return done(new Error("Failed to authenticate user from JWT"), false);
-    } else {
-      console.log(result);
-      return done(null, result);
+  new JwtStrategy(
+    {
+      jwtFromRequest: cookieExtractor,
+      secretOrKey: process.env.jwt_signing_key,
+      jsonWebTokenOptions: { algorithms: ["HS256"] },
+    },
+    async function (
+      jwt_payload: { username: string; password: string },
+      done: any
+    ) {
+      let result = await authenticate(
+        jwt_payload.username,
+        jwt_payload.password
+      );
+      if (!result) {
+        return done(new Error("Failed to authenticate user from JWT"), false);
+      } else {
+        return done(null, result);
+      }
     }
-  })
+  )
 );
 
 const db = pgp()(
@@ -63,9 +65,13 @@ const app = express();
 const port = 8000;
 
 app.use(express.json());
+
+import cookieParser from "cookie-parser";
+app.use(cookieParser());
+
 const router = express.Router();
 
-router.use(passport.authenticate("jwt", { session: false }));
+//router.use(passport.authenticate("jwt", { session: false }));
 
 router.get("/", async (req: any, res: any) => {
   // list commands available (add user, login, checkout, etc)
@@ -101,9 +107,9 @@ router.get("/list?", async (req: any, res: any) => {
 });
 
 router.get("/catalogue?", async (req: any, res: any) => {
-  let page = Number(req.query.page);
-  if (isNaN(page)) throw new Error("No valid page number specified");
-  let result = await db.manyOrNone(sql.catalogue, (page - 1) * 25);
+  let pagenum = Number(req.query.page);
+  if (isNaN(pagenum)) throw new Error("No valid page number specified");
+  let result = await db.manyOrNone(sql.catalogue, { page: pagenum });
   res.send(result);
 });
 
