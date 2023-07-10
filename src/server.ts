@@ -1,6 +1,42 @@
 import express from "express";
 import pgp, { QueryFile } from "pg-promise";
 import "dotenv/config";
+import jwt from 'jsonwebtoken';
+import passport, {JwtStrategy, ExtractJwt} from 'passport-jwt';
+
+function generateAccessToken(username) {
+  return jwt.sign(username, process.env.jwt_signing_key, { expiresIn: '1800s' });
+}
+
+function cookieExtractor(req){
+  let token = null;
+  if (req && req.cookies) {
+      token = req.cookies['jwt'];
+  }
+  return token;
+};
+
+async function Authenticate(username : string, password : string) {
+  let result = await db.oneOrNone(sql.login, [username, password]);
+  return result
+}
+
+let opts = {jwtFromRequest: cookieExtractor, secretOrKey:process.env.jwt_signing_key}
+
+passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
+    User.findOne({id: jwt_payload.sub}, function(err, user) {
+        if (err) {
+            return done(err, false);
+        }
+        if (user) {
+            return done(null, user);
+        } else {
+            return done(null, false);
+            // or you could create a new account
+        }
+    });
+}));
+
 
 const db = pgp()(
   `postgres://bookish:${process.env.bookish_password}@localhost:5432/bookish`
@@ -41,7 +77,11 @@ router.get("/login?", async (req: any, res: any) => {
   if (!result) {
     throw new Error("Authentication failed, username or password incorrect");
   }
-  res.cookie("key", "test", { httpOnly: true });
+  else {
+    let token = generateAccessToken(result.username);
+    res.cookie("jwt", token, { httpOnly: true, maxAge:1800*1000 });
+  }
+  
   res.send(result);
 });
 
