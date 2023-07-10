@@ -1,42 +1,44 @@
 import express from "express";
 import pgp, { QueryFile } from "pg-promise";
 import "dotenv/config";
-import jwt from 'jsonwebtoken';
-import passport, {JwtStrategy, ExtractJwt} from 'passport-jwt';
+import jwt from "jsonwebtoken";
+import passport from "passport";
+import { Strategy, ExtractJwt } from "passport-jwt";
 
-function generateAccessToken(username) {
-  return jwt.sign(username, process.env.jwt_signing_key, { expiresIn: '1800s' });
-}
-
-function cookieExtractor(req){
+function cookieExtractor(req: any) {
   let token = null;
   if (req && req.cookies) {
-      token = req.cookies['jwt'];
+    token = req.cookies["jwt"];
   }
   return token;
-};
-
-async function Authenticate(username : string, password : string) {
-  let result = await db.oneOrNone(sql.login, [username, password]);
-  return result
 }
 
-let opts = {jwtFromRequest: cookieExtractor, secretOrKey:process.env.jwt_signing_key}
+async function authenticate(username: string, password: string) {
+  let result = await db.oneOrNone(sql.login, [username, password]);
+  return result;
+}
 
-passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
-    User.findOne({id: jwt_payload.sub}, function(err, user) {
-        if (err) {
-            return done(err, false);
-        }
-        if (user) {
-            return done(null, user);
-        } else {
-            return done(null, false);
-            // or you could create a new account
-        }
-    });
-}));
+let opts = {
+  jwtFromRequest: cookieExtractor,
+  secretOrKey: process.env.jwt_signing_key,
+};
 
+passport.use(
+  new Strategy(opts, async function (
+    jwt_payload: { username: string; password: string },
+    done: any
+  ) {
+    console.log("strategy run");
+    let result = await authenticate(jwt_payload.username, jwt_payload.password);
+    if (!result) {
+      console.log("result invalid");
+      return done(new Error("Failed to authenticate user from JWT"), false);
+    } else {
+      console.log(result);
+      return done(null, result);
+    }
+  })
+);
 
 const db = pgp()(
   `postgres://bookish:${process.env.bookish_password}@localhost:5432/bookish`
@@ -63,6 +65,8 @@ const port = 8000;
 app.use(express.json());
 const router = express.Router();
 
+router.use(passport.authenticate("jwt", { session: false }));
+
 router.get("/", async (req: any, res: any) => {
   // list commands available (add user, login, checkout, etc)
   res.send("Home directory");
@@ -73,16 +77,20 @@ router.get("/login?", async (req: any, res: any) => {
   let username = String(req.query.username);
   if (!req.query.password) throw new Error("No password specified");
   let password = String(req.query.password);
-  let result = await db.oneOrNone(sql.login, [username, password]);
+  let result = await authenticate(username, password);
   if (!result) {
     throw new Error("Authentication failed, username or password incorrect");
+  } else {
+    if (!process.env.jwt_signing_key) {
+      throw new Error("JWT signing key not defined");
+    }
+    let token = jwt.sign(result, process.env.jwt_signing_key, {
+      expiresIn: "1800s",
+    });
+    res.cookie("jwt", token, { httpOnly: true, maxAge: 1800 * 1000 });
   }
-  else {
-    let token = generateAccessToken(result.username);
-    res.cookie("jwt", token, { httpOnly: true, maxAge:1800*1000 });
-  }
-  
-  res.send(result);
+
+  res.send("Authenticated successfully");
 });
 
 router.get("/list?", async (req: any, res: any) => {
