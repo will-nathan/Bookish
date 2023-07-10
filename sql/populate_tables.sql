@@ -1,15 +1,15 @@
-INSERT INTO books (title, author, ISBN, is_checked_out)
+INSERT INTO books (title, author, ISBN)
 VALUES 
-  ('Book 1', 'Author 1', 'ISBN1', FALSE),
-  ('Book 2', 'Author 2', 'ISBN2', FALSE),
-  ('Book 3', 'Author 3', 'ISBN3', TRUE),
-  ('Book 4', 'Author 4', 'ISBN4', FALSE),
-  ('Book 5', 'Author 5', 'ISBN5', TRUE),
-  ('Book 6', 'Author 6', 'ISBN6', FALSE),
-  ('Book 4', 'Author 4', 'ISBN7', TRUE),
-  ('Book 8', 'Author 8', 'ISBN8', FALSE),
-  ('Book 9', 'Author 9', 'ISBN9', TRUE),
-  ('Book 10', 'Author 10', 'ISBN10', FALSE);
+  ('Book 1', 'Author 1', 'ISBN1'),
+  ('Book 2', 'Author 2', 'ISBN2'),
+  ('Book 3', 'Author 3', 'ISBN3'),
+  ('Book 4', 'Author 4', 'ISBN4'),
+  ('Book 5', 'Author 5', 'ISBN5'),
+  ('Book 6', 'Author 6', 'ISBN6'),
+  ('Book 4', 'Author 4', 'ISBN7'),
+  ('Book 8', 'Author 8', 'ISBN8'),
+  ('Book 9', 'Author 9', 'ISBN9'),
+  ('Book 10', 'Author 10', 'ISBN10');
 
   INSERT INTO users (username, password)
 VALUES 
