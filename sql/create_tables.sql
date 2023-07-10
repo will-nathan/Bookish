@@ -14,22 +14,22 @@
 
 -- TABLE INITIALIZATION
 
-
+DROP TABLE IF EXISTS books;
 CREATE TABLE IF NOT EXISTS books (
   book_id SERIAL PRIMARY KEY,
   title VARCHAR(255),
   author VARCHAR(255),
-  ISBN VARCHAR(255),
-  copies INT,
-  checked_out INT,
+  ISBN VARCHAR(255)
 );
 
+DROP TABLE IF EXISTS users;
 CREATE TABLE IF NOT EXISTS users (
   user_id SERIAL PRIMARY KEY,
   username VARCHAR(255) UNIQUE,
   password VARCHAR(255)
 );
 
+DROP TABLE IF EXISTS checked_out;
 CREATE TABLE IF NOT EXISTS checked_out (
   checkout_id SERIAL PRIMARY KEY,
   checkout_date DATE,

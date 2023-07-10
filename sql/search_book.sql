@@ -1,3 +1,3 @@
 select title, author, ISBN
 from books
-where ($1 is null or title = $1) and ($2 is null or author = $2) and ($3 is null or ISBN = $3)
+where ($1::text is null or title = $1::text) and ($2::text is null or author = $2::text) and ($3::text is null or ISBN = $3::text)
