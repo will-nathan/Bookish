@@ -1,64 +1,14 @@
 import express from "express";
-import pgp, { QueryFile } from "pg-promise";
 import "dotenv/config";
 import jwt from "jsonwebtoken";
-import passport from "passport";
-import { Strategy as JwtStrategy, StrategyOptions } from "passport-jwt";
+import cookieParser from "cookie-parser";
 
-function cookieExtractor(req: any) {
-  let token = null;
-  if (req && req.cookies) {
-    token = req.cookies["jwt"];
-  }
-  return token;
-}
+import auth from "./auth";
+import { db, sql } from "./sql_helper";
 
 async function authenticate(username: string, password: string) {
   let result = await db.oneOrNone(sql.login, [username, password]);
   return result;
-}
-
-passport.use(
-  new JwtStrategy(
-    {
-      jwtFromRequest: cookieExtractor,
-      secretOrKey: process.env.jwt_signing_key,
-      jsonWebTokenOptions: { algorithms: ["HS256"] },
-    },
-    async function (
-      jwt_payload: { username: string; password: string },
-      done: any
-    ) {
-      let result = await authenticate(
-        jwt_payload.username,
-        jwt_payload.password
-      );
-      if (!result) {
-        return done(new Error("Failed to authenticate user from JWT"), false);
-      } else {
-        return done(null, result);
-      }
-    }
-  )
-);
-
-const db = pgp()(
-  `postgres://bookish:${process.env.bookish_password}@localhost:5432/bookish`
-);
-
-let sql_filenames: Record<string, string> = {
-  list: "../sql/list_books_for_user.sql",
-  catalogue: "../sql/list_all_books.sql",
-  search: "../sql/search_book.sql",
-  add_book: "../sql/add_book.sql",
-  count_available: "../sql/count_available.sql",
-  get_unavailable: "../sql/get_unavailable.sql",
-  login: "../sql/check_login.sql",
-};
-
-let sql: Record<string, pgp.ParameterizedQuery> = {};
-for (let key in sql_filenames) {
-  sql[key] = new pgp.ParameterizedQuery(new QueryFile(sql_filenames[key]));
 }
 
 const app = express();
@@ -66,12 +16,9 @@ const port = 8000;
 
 app.use(express.json());
 
-import cookieParser from "cookie-parser";
 app.use(cookieParser());
 
 const router = express.Router();
-
-//router.use(passport.authenticate("jwt", { session: false }));
 
 router.get("/", async (req: any, res: any) => {
   // list commands available (add user, login, checkout, etc)
@@ -99,21 +46,21 @@ router.get("/login?", async (req: any, res: any) => {
   res.send("Authenticated successfully");
 });
 
-router.get("/list?", async (req: any, res: any) => {
+router.get("/list?", auth, async (req: any, res: any) => {
   if (!req.query.username) throw new Error("No username specified");
   let username = String(req.query.username);
   let result = await db.manyOrNone(sql.list, username);
   res.send(result);
 });
 
-router.get("/catalogue?", async (req: any, res: any) => {
+router.get("/catalogue?", auth, async (req: any, res: any) => {
   let pagenum = Number(req.query.page);
   if (isNaN(pagenum)) throw new Error("No valid page number specified");
-  let result = await db.manyOrNone(sql.catalogue, { page: pagenum });
+  let result = await db.manyOrNone(sql.catalogue, pagenum);
   res.send(result);
 });
 
-router.get("/search?", async (req: any, res: any) => {
+router.get("/search?", auth, async (req: any, res: any) => {
   let title = req.query.title;
   let author = req.query.author;
   let ISBN = req.query.ISBN;
@@ -121,7 +68,7 @@ router.get("/search?", async (req: any, res: any) => {
   res.send(result);
 });
 
-router.get("/addbook?", async (req: any, res: any) => {
+router.get("/addbook?", auth, async (req: any, res: any) => {
   let title = req.query.title;
   let author = req.query.author;
   let ISBN = req.query.ISBN;
@@ -131,7 +78,7 @@ router.get("/addbook?", async (req: any, res: any) => {
   res.send(result);
 });
 
-router.get("/available?", async (req: any, res: any) => {
+router.get("/available?", auth, async (req: any, res: any) => {
   let ISBN = req.query.ISBN;
   if (!ISBN) throw new Error("Must specify ISBN");
   let count_available = await db.manyOrNone(sql.count_available, ISBN);
@@ -144,3 +91,5 @@ app.use("/", router);
 app.listen(port, () => {
   console.log(`Library backend is running on port ${port}`);
 });
+
+export { authenticate };
