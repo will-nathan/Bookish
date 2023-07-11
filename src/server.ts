@@ -36,50 +36,69 @@ let sql_file: Record<string, SQLFile> = {
 };
 
 router.get("/", async (req: any, res: any) => {
-  // list commands available (add user, login, checkout, etc)
   res.send("Home directory");
 });
 
 router.get("/login?", async (req: any, res: any) => {
-  if (!req.query.username) throw new Error("No username specified");
-  let username = String(req.query.username);
-  if (!req.query.password) throw new Error("No password specified");
-  let password = String(req.query.password);
-  let result = await authenticate(username, password);
-  if (!result) {
-    throw new Error("Authentication failed, username or password incorrect");
-  } else {
-    if (!process.env.jwt_signing_key) {
-      throw new Error("JWT signing key not defined");
+  try {
+    if (!req.query.username) throw new Error("No username specified");
+    let username = String(req.query.username);
+    if (!req.query.password) throw new Error("No password specified");
+    let password = String(req.query.password);
+    let result = await authenticate(username, password);
+    if (!result) {
+      throw new Error("Authentication failed, username or password incorrect");
+    } else {
+      if (!process.env.jwt_signing_key) {
+        throw new Error("JWT signing key not defined");
+      }
+      let token = jwt.sign(result, process.env.jwt_signing_key, {
+        expiresIn: "1800s",
+      });
+      res.cookie("jwt", token, { httpOnly: true, maxAge: 1800 * 1000 });
     }
-    let token = jwt.sign(result, process.env.jwt_signing_key, {
-      expiresIn: "1800s",
-    });
-    res.cookie("jwt", token, { httpOnly: true, maxAge: 1800 * 1000 });
-  }
 
-  res.send("Authenticated successfully");
+    res.send("Authenticated successfully");
+  } catch (e) {
+    res.send((e as Error).message);
+  }
 });
 
 router.get("/available?", auth, async (req: any, res: any) => {
-  let ISBN = req.query.ISBN;
-  if (!ISBN) throw new Error("Must specify ISBN");
-  let count_available = await sql_file.count_available.execute(req.query);
-  let unavailable = await sql_file.get_unavailable.execute(req.query);
-  res.send({ count_available, unavailable });
+  try {
+    let ISBN = req.query.ISBN;
+    if (!ISBN) throw new Error("Must specify ISBN");
+    let count_available = await sql_file.count_available.execute(req.query);
+    let unavailable = await sql_file.get_unavailable.execute(req.query);
+    res.send({ count_available, unavailable });
+  } catch (e) {
+    res.send((e as Error).message);
+  }
 });
 
 router.get("/:function?", auth, async (req: any, res: any) => {
   if (req.params.function in sql_file) {
-    let result = await sql_file[req.params.function].execute(req.query);
-    res.send(result);
+    try {
+      let result = await sql_file[req.params.function].execute(req.query);
+      res.send(result);
+    } catch (e) {
+      res.send((e as Error).message);
+    }
+  } else {
+    res.send("Function not found");
   }
 });
 
-router.get('/check_out', auth, async (req: any, res: any) => {
-  req.query.username= req.user;
-  let result = await sql_file.checkout.execute(req.query);
-})
+router.get("/checkout", auth, async (req: any, res: any) => {
+  try {
+    req.query.username = req.user;
+    let result = await sql_file.checkout.execute(req.query);
+    res.send(result);
+  } catch (e) {
+    res.send((e as Error).message);
+  }
+});
+
 app.use("/", router);
 
 app.listen(port, () => {
