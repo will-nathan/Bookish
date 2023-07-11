@@ -26,6 +26,7 @@ export class Params {
   username: string | undefined;
   password: string | undefined;
   page: number | undefined;
+  days: number | undefined;
 
   constructor(params: Params) {
     this.title = params.title;
@@ -34,5 +35,6 @@ export class Params {
     this.username = params.username;
     this.password = params.password;
     this.page = params.page;
+    this.days = params.days;
   }
 }

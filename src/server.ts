@@ -32,6 +32,7 @@ let sql_file: Record<string, SQLFile> = {
   count_available: new SQLFile(db, "sql/count_available.sql"),
   get_unavailable: new SQLFile(db, "sql/get_unavailable.sql"),
   login: new SQLFile(db, "sql/check_login.sql"),
+  checkout: new SQLFile(db, "sq/check_out_book.sql"),
 };
 
 router.get("/", async (req: any, res: any) => {
