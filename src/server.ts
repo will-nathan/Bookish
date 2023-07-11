@@ -2,10 +2,14 @@ import express from "express";
 import "dotenv/config";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
+import pgp from "pg-promise";
 
 import auth from "./auth";
-import { db } from "./sql_helper";
 import SQLFile, { Params } from "./sql_file";
+
+const db = pgp()(
+  `postgres://bookish:${process.env.bookish_password}@localhost:5432/bookish`
+);
 
 async function authenticate(username: string, password: string) {
   let result = await sql_file.login.execute_one({
