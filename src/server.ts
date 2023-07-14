@@ -18,9 +18,15 @@ async function authenticate(username: string, password: string) {
   } as Params);
   return result;
 }
+export async function authenticateUser(username:string,password:string){ return(username=='user1'&&password=='password')}
 
 const app = express();
-const port = 8000;
+const port = 5000;
+
+app.use(function (req: any, res: any, next: any) {
+  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
+  next();
+});
 
 app.use(express.json());
 
@@ -49,24 +55,32 @@ router.get("/login?", async (req: any, res: any) => {
     let username = String(req.query.username);
     if (!req.query.password) throw new Error("No password specified");
     let password = String(req.query.password);
-    let result = await authenticate(username, password);
+    let result = await authenticateUser(username, password);
     if (!result) {
-      throw new Error("Authentication failed, username or password incorrect");
+      res.send(false)
     } else {
       if (!process.env.jwt_signing_key) {
         throw new Error("JWT signing key not defined");
       }
-      let token = jwt.sign(result, process.env.jwt_signing_key, {
+      let token = jwt.sign({username,password}, process.env.jwt_signing_key, {
         expiresIn: "1800s",
       });
       res.cookie("jwt", token, { httpOnly: true, maxAge: 1800 * 1000 });
+      req.user=username;
+      res.send(true)
     }
-
-    res.send("Authenticated successfully");
   } catch (e) {
     res.send((e as Error).message);
   }
 });
+
+
+router.get('/isLoggedIn', (req:any,res:any)=>{
+  let result=auth;
+  if (req.user) {
+    res.send(true)
+  } else {res.send(false)}
+})
 
 router.get("/available?", auth, async (req: any, res: any) => {
   try {
@@ -102,6 +116,7 @@ router.get("/checkout", auth, async (req: any, res: any) => {
     res.send((e as Error).message);
   }
 });
+
 
 app.use("/", router);
 
